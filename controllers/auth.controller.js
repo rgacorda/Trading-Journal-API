@@ -1,42 +1,50 @@
-const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const bcrypt = require('bcryptjs');
+const User = require('../models/user.model');
+const { generateToken } = require('../utils/jwt');
+const cookieConfig = require('../config/cookie'); 
 
 exports.register = async (req, res) => {
-  const { username, password, role = 'free' } = req.body;
-  try {
-    const exists = await User.findOne({ where: { username } });
-    if (exists) return res.status(400).json({ message: 'User already exists' });
-
-    const hash = await bcrypt.hash(password, 10);
-    await User.create({ username, password: hash, role });
-    res.json({ message: 'User registered' });
-  } catch (err) {
-    res.status(500).json({ message: 'Error registering user', error: err.message });
-  }
-};
+    const { email, password, firstname, lastname, middlename, phone } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    try {
+      const user = await User.create({
+        email,
+        password: hashedPassword,
+        firstname,
+        lastname,
+        middlename,
+        phone,
+        role: 'free'
+      });
+  
+      const token = generateToken(user);
+      res.cookie('token', token, cookieConfig);
+      return res.status(201).json({ message: 'Registered successfully' });
+    } catch (err) {
+      if (err.name === 'SequelizeUniqueConstraintError' && err.errors[0].path === 'email') {
+        return res.status(409).json({ message: 'Email already exists.' });
+      }
+  
+      console.error('User creation error:', err);
+      res.status(400).json({ message: 'User creation failed', error: err.message });
+    }
+  };
+  
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    const user = await User.findOne({ where: { username } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        const token = generateToken(user);
+        res.cookie('token', token, cookieConfig);
+        return res.status(200).json({ message: 'Login successful' });
+    } catch (err) {
+        res.status(500).json({ message: 'Login failed', error: err });
     }
-
-    req.session.user = { id: user.id, username: user.username, role: user.role };
-    res.json({ message: 'Logged in' });
-  } catch (err) {
-    res.status(500).json({ message: 'Login error', error: err.message });
-  }
-};
-
-exports.logout = (req, res) => {
-  req.session.destroy(() => res.json({ message: 'Logged out' }));
-};
-
-exports.forgotPassword = async (req, res) => {
-  const { username } = req.body;
-  const user = await User.findOne({ where: { username } });
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  res.json({ message: `Password reset link sent to ${username}'s email` });
 };
