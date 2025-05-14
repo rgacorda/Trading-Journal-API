@@ -5,9 +5,11 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 
-//CONFIGURATIONS
+//INIT
 dotenv.config();
 const app = express();
+
+//MIDDLEWARE
 app.use(cors({
     origin: 'http://localhost:3001',
     credentials: true 
@@ -16,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 //ROUTES
-const authRoutes = require('./routes/user.routes');
+const authRoutes = require('./routes/auth.routes');
 app.use('/auth', authRoutes);
 
 
