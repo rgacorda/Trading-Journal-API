@@ -68,7 +68,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     broker: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
+      defaultValue: 'unknown'
     },
     userId: {
       type: DataTypes.INTEGER,

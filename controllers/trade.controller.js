@@ -1,86 +1,113 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const xlsx = require('xlsx');
-const { Trade } = require('../models');
+const { Trade } = require("../models");
 
-// 1. Multer storage engine
-const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => {
-    cb(null, `upload-${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
-
-const upload = multer({ storage });
-
-// 2. Parse Excel/CSV based on platform
-const parseFile = (filePath, platform) => {
-  const workbook = xlsx.readFile(filePath);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = xlsx.utils.sheet_to_json(sheet, { range: 1 }); // start from row 2
-
-  const today = new Date().toISOString().split('T')[0];
-
-  if (platform === 'tz_pro') {
-    return rows.map((row) => ({
-      ticker: row['Symbol/Contract'],
-      side: row['Action']?.toLowerCase(),
-      quantity: parseInt(row['Shares In']),
-      entry: parseFloat(row['Price In']),
-      exit: parseFloat(row['Price Out']),
-      account: row['Account'],
-      realized: parseFloat(row['Day Realized']),
-      time: row['Updated'],
-      date: today,
-    }));
+exports.getAllTrade = async (req, res) => {
+  try {
+    const trades = await Trade.findAll();
+    res.status(200).json(trades);
+  } catch (err) {
+    console.error("Error fetching trades:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch trades", error: err.message });
   }
-
-  if (platform === 'tz_main') {
-    return rows.map((row) => ({
-      ticker: row['Ticker'] || row['Symbol'],
-      side: row['Side']?.toLowerCase(),
-      quantity: parseInt(row['Qty']),
-      entry: parseFloat(row['Entry']),
-      exit: parseFloat(row['Exit']),
-      account: row['Account Name'],
-      realized: parseFloat(row['Net PnL']),
-      time: row['Trade Time'],
-      date: today,
-    }));
-  }
-
-  throw new Error('Unsupported platform');
 };
 
-// 3. Upload controller
-const uploadController = async (req, res) => {
-  const file = req.file;
-  const platform = req.body.platform;
+exports.getSpecificTrade = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const trade = await Trade.findByPk(id);
+    if (!trade) {
+      return res.status(404).json({ message: "Trade not found" });
+    }
+    res.status(200).json(trade);
+  } catch (err) {
+    console.error("Error fetching trade:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch trade", error: err.message });
+  }
+};
 
-  if (!platform) return res.status(400).json({ error: 'Platform is required' });
-  if (!file) return res.status(400).json({ error: 'File is required' });
+exports.createTrade = async (req, res) => {
+  const { ticker, side, quantity, entry, exit, account, realized, time, date } =
+    req.body;
+
+  if (!ticker || !side || !quantity || !entry || !exit || !date) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
   try {
-    const trades = parseFile(file.path, platform);
-
-    await Trade.bulkCreate(trades);
-
-    res.status(200).json({ message: `${trades.length} trades uploaded successfully` });
+    const trade = await Trade.create({
+      ...(req.body || {
+        ticker,
+        side,
+        quantity,
+        entry,
+        exit,
+        account,
+        realized,
+        time,
+        date,
+        userId: req.body.id,
+      }),
+    });
+    res.status(201).json(trade);
   } catch (err) {
-    console.error('Error parsing or saving trades:', err.message);
-    res.status(500).json({ error: 'Failed to process file' });
-  } finally {
-    // Delete file regardless of success or failure
-    try {
-      fs.unlinkSync(file.path);
-    } catch (fsErr) {
-      console.error('Error deleting uploaded file:', fsErr.message);
-    }
+    console.error("Error creating trade:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to create trade", error: err.message });
   }
 };
 
-module.exports = {
-  upload,
-  uploadController,
+exports.updateTrade = async (req, res) => {
+  const { id } = req.params;
+  const { ticker, side, quantity, entry, exit, account, realized, time, date } =
+    req.body;
+
+  const updateData = {};
+
+  if (ticker) updateData.ticker = ticker;
+  if (side) updateData.side = side;
+  if (quantity) updateData.quantity = quantity;
+  if (entry) updateData.entry = entry;
+  if (exit) updateData.exit = exit;
+  if (account) updateData.account = account;
+  if (realized) updateData.realized = realized;
+  if (time) updateData.time = time;
+  if (date) updateData.date = date;
+
+  try {
+    const trade = await Trade.findByPk(id);
+    if (!trade) {
+      return res.status(404).json({ message: "Trade not found" });
+    }
+
+    await trade.update(updateData);
+    res.status(200).json(trade);
+  } catch (err) {
+    console.error("Error updating trade:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to update trade", error: err.message });
+  }
+};
+
+exports.deleteTrade = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const trade = await Trade.findByPk(id);
+    if (!trade) {
+      return res.status(404).json({ message: "Trade not found" });
+    }
+
+    await trade.destroy();
+    res.status(200).json({ message: "Trade deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting trade:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to delete trade", error: err.message });
+  }
 };
