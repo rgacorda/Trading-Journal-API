@@ -6,6 +6,7 @@ const Trade = require("./trade.model")(sequelize, DataTypes);
 const Mistake = require("./mistake.model")(sequelize, DataTypes);
 const Plan = require("./plan.model")(sequelize, DataTypes);
 const TradeMistake = require("./trade_mistake.model")(sequelize, DataTypes);
+const Account = require("./account.model")(sequelize, DataTypes);
 
 // Add models to the db object
 const db = {};
@@ -16,6 +17,7 @@ db.Mistake = Mistake;
 db.Plan = Plan;
 db.TradeMistake = TradeMistake;
 db.Trade = Trade;
+db.Account = Account;
 
 //associations
 User.hasMany(Trade, { foreignKey: "userId" });

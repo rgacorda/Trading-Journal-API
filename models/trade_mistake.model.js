@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define("TradeMistake", {
       tradeId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         references: {
           model: "Trades",
           key: "id",
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
       },
       mistakeId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         references: {
           model: "Mistakes",
           key: "id",

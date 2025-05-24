@@ -1,6 +1,6 @@
 const { Trade } = require("../models");
 
-exports.getAllTrade = async (req, res) => {
+exports.getAllTrades = async (req, res) => {
   try {
     const trades = await Trade.findAll();
     res.status(200).json(trades);
@@ -12,7 +12,7 @@ exports.getAllTrade = async (req, res) => {
   }
 };
 
-exports.getSpecificTrade = async (req, res) => {
+exports.getTrade = async (req, res) => {
   const { id } = req.params;
   try {
     const trade = await Trade.findByPk(id);

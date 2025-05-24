@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define("Trade", {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
     },
     ticker: {
       type: DataTypes.STRING,
@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
     exit: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+    },
+    fees: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0,
     },
     setup: {
       type: DataTypes.STRING,
@@ -72,7 +77,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'unknown'
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Users",
@@ -80,7 +85,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     planId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: "Plans",

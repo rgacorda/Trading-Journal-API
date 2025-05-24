@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define("Mistake", {
+  return sequelize.define("Account", {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -8,6 +8,14 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    balance: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    platform: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   });
 };
