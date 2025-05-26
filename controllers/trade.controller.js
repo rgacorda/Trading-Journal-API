@@ -1,8 +1,13 @@
 const { Trade } = require("../models");
 
 exports.getAllTrades = async (req, res) => {
+  const { id: userId } = req.user;
   try {
-    const trades = await Trade.findAll();
+    const trades = await Trade.findAll({
+      where: {
+        userId,
+      },
+    })
     res.status(200).json(trades);
   } catch (err) {
     console.error("Error fetching trades:", err);

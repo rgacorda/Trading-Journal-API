@@ -1,9 +1,21 @@
-const cookieConfig = {
+const commonOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // false in development
+  secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  domain: undefined
+  domain: undefined, // optional if needed for subdomains
 };
 
-module.exports = cookieConfig;
+const accessTokenCookieConfig = {
+  ...commonOptions,
+  maxAge: 15 * 60 * 1000, // 15 minutes
+};
+
+const refreshTokenCookieConfig = {
+  ...commonOptions,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+module.exports = {
+  accessTokenCookieConfig,
+  refreshTokenCookieConfig,
+};

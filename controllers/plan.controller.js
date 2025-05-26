@@ -1,8 +1,14 @@
 const { Plan } = require("../models");
 
 exports.getAllPlans = async (req, res) => {
+  const { id: userId } = req.user;
+
   try {
-    const plans = await Plan.findAll();
+    const plans = await Plan.findAll({
+      where: {
+        userId,
+      },
+    });
     res.status(200).json(plans);
   } catch (err) {
     console.error("Error fetching plans:", err);

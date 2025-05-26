@@ -1,8 +1,13 @@
 const { Account } = require("../models");
 
 exports.getAllAccount = async (req, res) => {
+  const { id: userId } = req.user;
   try {
-    const accounts = await Account.findAll();
+    const accounts = await Account.findAll({
+      where: {
+        userId,
+      },
+    });
     res.status(200).json(accounts);
   } catch (err) {
     console.error("Error fetching accounts:", err);

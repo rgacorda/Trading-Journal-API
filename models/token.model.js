@@ -1,25 +1,22 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define("Plan", {
+  return sequelize.define('RefreshToken', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    name: {
+    token: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
-    notes: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
     },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {
-        model: "Users",
-        key: "id",
-      }
-    }
+    },
   });
 };

@@ -1,12 +1,10 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
-  const token = 
-    req.cookies?.token || // from Next.js browser
-    req.headers.authorization?.split(' ')[1]; // from mobile app
+  const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
@@ -14,7 +12,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 

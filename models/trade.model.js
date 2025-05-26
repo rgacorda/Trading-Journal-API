@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     mistakes: {
-      type: DataTypes.STRING,
+      type: DataTypes.JSON,
       allowNull: true,
     },
     notes: {
@@ -74,7 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     broker: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: 'unknown'
+      defaultValue: "unknown",
     },
     userId: {
       type: DataTypes.UUID,
@@ -92,5 +92,13 @@ module.exports = (sequelize, DataTypes) => {
         key: "id",
       },
     },
+    accountId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: "Accounts",
+        key: "id"
+      }
+    }
   });
 };

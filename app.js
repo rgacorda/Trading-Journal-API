@@ -30,8 +30,6 @@ const userRoutes = require("./routes/user.routes");
 app.use("/user", userRoutes);
 const planRoutes = require("./routes/plan.routes");
 app.use("/plan", planRoutes);
-const mistakeRoutes = require("./routes/mistake.routes");
-app.use("/mistake", mistakeRoutes);
 const accountRoutes = require("./routes/account.routes");
 app.use("/account", accountRoutes);
 

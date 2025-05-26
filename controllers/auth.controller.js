@@ -1,7 +1,26 @@
 const bcrypt = require("bcryptjs");
-const { User } = require("../models");
-const { generateToken } = require("../utils/jwt");
-const cookieConfig = require("../config/cookie");
+const { User, RefreshToken } = require("../models");
+const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
+const {
+  accessTokenCookieConfig,
+  refreshTokenCookieConfig,
+} = require("../config/cookie");
+const jwt = require("jsonwebtoken");
+
+const createRefreshToken = async (userId) => {
+  const expiresIn = 7 * 24 * 60 * 60 * 1000;
+  const token = jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+
+  await RefreshToken.create({
+    token,
+    userId,
+    expiresAt: new Date(Date.now() + expiresIn),
+  });
+
+  return token;
+};
 
 exports.register = async (req, res) => {
   const { email, password, firstname, lastname, middlename, phone } = req.body;
@@ -18,7 +37,6 @@ exports.register = async (req, res) => {
       phone,
       role: "free",
     });
-
 
     return res.status(201).json({ message: "Registered successfully" });
   } catch (err) {
@@ -37,29 +55,19 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user);
-  
+    const accessToken = generateAccessToken(user);
+    const refreshToken = await createRefreshToken(user.id);
 
-    // Detect if request is from web (user-agent check) - optional
-    const isWeb =
-      req.headers["user-agent"]?.includes("Mozilla") ||
-      req.query.platform === "web";
+    res.cookie("token", accessToken, accessTokenCookieConfig);
+    res.cookie("refreshToken", refreshToken, refreshTokenCookieConfig);
 
-    if (isWeb) {
-      // For web clients, send token in HTTP-only cookie
-      res.cookie("token", token, cookieConfig);
-      return res.status(200).json({ message: "Login successful" });
-    }
-
-    // For mobile or other clients, send token in response body (to store manually)
-    return res.status(200).json({ message: "Login successful", token });
+    return res.status(200).json({ message: "Login successful" });
   } catch (err) {
     console.error("Login error:", err);
     return res
@@ -68,7 +76,46 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.logout = (req, res) => {
-  res.clearCookie("token", cookieConfig);
+exports.logout = async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    await RefreshToken.destroy({ where: { token: refreshToken } });
+  }
+  // res.clearCookie("token", accessTokenCookieConfig);
+  res.clearCookie("refreshToken", refreshTokenCookieConfig);
   return res.status(200).json({ message: "Logged out successfully" });
+};
+
+exports.refresh = async (req, res) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) return res.status(401).json({ message: "No refresh token" });
+
+  try {
+    const storedToken = await RefreshToken.findOne({ where: { token } });
+    if (!storedToken) {
+      return res.status(403).json({ message: "Refresh token not found" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(403).json({ message: "User not found" });
+    }
+
+    // Token rotation (optional but good): delete old and issue new refresh token
+    await storedToken.destroy();
+    const newRefreshToken = await createRefreshToken(user.id);
+    const newAccessToken = generateAccessToken(user);
+
+    res.cookie("token", newAccessToken, accessTokenCookieConfig);
+    res.cookie("refreshToken", newRefreshToken, refreshTokenCookieConfig);
+
+    return res.status(200).json({ message: "Token refreshed" });
+  } catch (err) {
+    console.error("Refresh error:", err);
+    return res
+      .status(401)
+      .json({ message: "Invalid or expired refresh token" });
+  }
 };
