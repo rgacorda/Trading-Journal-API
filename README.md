@@ -63,7 +63,7 @@ npm run dev
 The API should now be running at http://localhost:3000
 
 📁 Folder Structure
-
+```bash
 src/
 ├── config/            # DB & JWT config
 ├── controllers/       # Route logic
@@ -72,6 +72,7 @@ src/
 ├── routes/            # API routes
 ├── utils/             # Helpers (CSV/XLS parsing, token, etc.)
 └── index.js           # Entry point
+```
 📌 Available Endpoints
 
 All endpoints require JWT access tokens unless otherwise specified.
