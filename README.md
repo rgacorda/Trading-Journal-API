@@ -92,14 +92,14 @@ Gold	All features, multi-platform management
 This API is intended to be consumed by a frontend via HTTP calls with JWT-based session tokens (stored as HTTP-only cookies or Authorization headers).
 
 🧪 TODO / Roadmap
-
+```bash
  Swagger/OpenAPI documentation
  Import mapping templates per broker/platform
  Advanced filtering and search
  Tagging system for trades (e.g., strategy-based)
  Multi-user team sharing (premium tier)
 📄 License
-
+```
 
 🤝 Contributing
 
