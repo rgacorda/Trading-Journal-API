@@ -92,7 +92,7 @@ const parseFile = (filePath, platform, id) => {
 const uploadController = async (req, res) => {
   const file = req.file;
   const platform = req.body.platform;
-  const user = req.body.user;
+  const user = req.user.id;
 
   if (!platform) return res.status(400).json({ error: "Platform is required" });
   if (!file) return res.status(400).json({ error: "File is required" });

@@ -34,8 +34,9 @@ exports.getAccount = async (req, res) => {
 };
 
 exports.createAccount = async (req, res) => {
+  const { id: userId } = req.user;
   try {
-    const account = await Account.create(req.body);
+    const account = await Account.create({ ...req.body, userId });
     res.status(201).json(account);
   } catch (err) {
     console.error("Error creating account:", err);
@@ -73,6 +74,7 @@ exports.deleteAccount = async (req, res) => {
   const { id } = req.params;
   try {
     const account = await Account.findByPk(id);
+    
     if (!account) {
       return res.status(404).json({ message: "Account not found" });
     }

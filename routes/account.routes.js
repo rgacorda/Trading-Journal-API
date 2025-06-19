@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const accountController = require('../controllers/account.controller');
+const verifyToken = require('../middlewares/auth.middleware');
 
-router.get('/', accountController.getAllAccount);
-router.get('/:id', accountController.getAccount);
-router.post('/', accountController.createAccount);
-router.put('/:id', accountController.updateAccount);
-router.delete('/:id', accountController.deleteAccount);
+router.get('/', verifyToken, accountController.getAllAccount);
+router.get('/:id', verifyToken, accountController.getAccount);
+router.post('/', verifyToken, accountController.createAccount);
+router.put('/:id', verifyToken, accountController.updateAccount);
+router.delete('/:id', verifyToken, accountController.deleteAccount);
 
 module.exports = router;

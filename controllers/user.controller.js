@@ -1,7 +1,7 @@
 const { User } = require("../models");
 
 exports.getUser = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   try {
     const user = await User.findByPk(id, {
       attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'id', 'phone'] }
