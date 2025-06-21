@@ -7,8 +7,9 @@ exports.getAllTrades = async (req, res) => {
       where: {
         userId,
       },
-    })
-    res.status(200).json(trades);
+    });
+    const sortedTrades = trades.sort((a, b) => new Date(b.date) - new Date(a.date));
+    res.status(200).json(sortedTrades);
   } catch (err) {
     console.error("Error fetching trades:", err);
     res
@@ -99,16 +100,25 @@ exports.updateTrade = async (req, res) => {
 };
 
 exports.deleteTrade = async (req, res) => {
-  const { id } = req.params;
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: "No trade IDs provided" });
+  }
 
   try {
-    const trade = await Trade.findByPk(id);
-    if (!trade) {
-      return res.status(404).json({ message: "Trade not found" });
+    const deletedCount = await Trade.destroy({
+      where: {
+        id: ids,
+      },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "No matching trades found" });
     }
 
-    await trade.destroy();
-    res.status(200).json({ message: "Trade deleted successfully" });
+    res.status(200).json({
+      message: `${deletedCount} trade(s) deleted successfully`,
+    });
   } catch (err) {
     console.error("Error deleting trade:", err);
     res

@@ -56,7 +56,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      attributes: ["firstname", "lastname", "middlename", "email", "phone", "password", "id"],
+      where: { email },
+    });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -67,7 +70,16 @@ exports.login = async (req, res) => {
     res.cookie("token", accessToken, accessTokenCookieConfig);
     res.cookie("refreshToken", refreshToken, refreshTokenCookieConfig);
 
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({
+      message: "Login successful",
+      user: {
+        firstname: user.firstname,
+        lastname: user.lastname,
+        middlename: user.middlename,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
   } catch (err) {
     console.error("Login error:", err);
     return res

@@ -5,10 +5,10 @@ const tradeController = require('../controllers/trade.controller');
 const verifyToken = require('../middlewares/auth.middleware');
 
 router.post('/upload', verifyToken, upload.single('file'), uploadController);
-router.post('/', tradeController.createTrade);
-router.get('/', tradeController.getAllTrades);
-router.get('/:id', tradeController.getTrade);
-router.put('/:id', tradeController.updateTrade);
-router.delete('/:id', tradeController.deleteTrade);
+router.post('/', verifyToken, tradeController.createTrade);
+router.get('/', verifyToken, tradeController.getAllTrades);
+router.get('/:id',verifyToken, tradeController.getTrade);
+router.put('/:id',verifyToken, tradeController.updateTrade);
+router.delete('/delete',verifyToken, tradeController.deleteTrade);
 
 module.exports = router;

@@ -64,7 +64,7 @@ const parseFile = (filePath, platform, id) => {
           account: rowObj["Account"] || "",
           realized: parseFloat(rowObj["Day Realized"] || "0"),
           time: rowObj["Updated"] || "",
-          date: today,
+          date: new Date(`${today}T${rowObj["Updated"] || ""}`),
           userId: id,
         };
       })
