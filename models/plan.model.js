@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    notes: {
-      type: DataTypes.STRING,
+    content: {
+      type: DataTypes.TEXT("long"),
       allowNull: true,
     },
     userId: {
@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: "Users",
         key: "id",
-      }
-    }
-  });
+      },
+    },
+  }, { timestamps: true, paranoid: true, });
 };
+

@@ -35,10 +35,11 @@ exports.getPlan = async (req, res) => {
 };
 
 exports.createPlan = async (req, res) => {
-  const { name, notes } = req.body;
+  const { name, content } = req.body;
+   const { id: userId } = req.user;
 
   try {
-    const plan = await Plan.create({ name, notes });
+    const plan = await Plan.create({ name, content, userId });
     res.status(201).json(plan);
   } catch (err) {
     console.error("Error creating plan:", err);
@@ -50,7 +51,11 @@ exports.createPlan = async (req, res) => {
 
 exports.updatePlan = async (req, res) => {
   const { id } = req.params;
-  const { name, notes } = req.body;
+  const updateData = {};
+
+  if (req.body.name) updateData.name = req.body.name;
+  if (req.body.content) updateData.content = req.body.content;
+  
 
   try {
     const plan = await Plan.findByPk(id);
@@ -58,8 +63,7 @@ exports.updatePlan = async (req, res) => {
       return res.status(404).json({ message: "Plan not found" });
     }
 
-    if (name !== undefined) plan.name = name;
-    if (notes !== undefined) plan.notes = notes;
+    await plan.update(updateData);
     await plan.save();
     res.status(200).json(plan);
   } catch (err) {
