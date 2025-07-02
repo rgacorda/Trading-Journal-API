@@ -30,16 +30,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: 0,
     },
-    setup: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    plan: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+    // setup: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    // },
+    // plan: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    // },
     grade: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     mistakes: {
@@ -74,7 +74,6 @@ module.exports = (sequelize, DataTypes) => {
     broker: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "unknown",
     },
     userId: {
       type: DataTypes.UUID,

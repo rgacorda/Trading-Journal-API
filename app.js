@@ -36,7 +36,7 @@ app.use("/account", accountRoutes);
 //DB and PORT server
 const PORT = process.env.PORT;
 db.sequelize
-  .sync()
+  .sync({alter: true})
   .then(() => {
     console.log("Database synced");
     app.listen(PORT, () => {

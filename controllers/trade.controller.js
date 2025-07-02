@@ -68,7 +68,7 @@ exports.createTrade = async (req, res) => {
 
 exports.updateTrade = async (req, res) => {
   const { id } = req.params;
-  const { ticker, side, quantity, entry, exit, account, realized, time, date } =
+  const { ticker, side, quantity, entry, exit, accountId, realized, time, date, grade, planId, mistakes } =
     req.body;
 
   const updateData = {};
@@ -78,10 +78,14 @@ exports.updateTrade = async (req, res) => {
   if (quantity) updateData.quantity = quantity;
   if (entry) updateData.entry = entry;
   if (exit) updateData.exit = exit;
-  if (account) updateData.account = account;
+  if (accountId) updateData.accountId = accountId;
   if (realized) updateData.realized = realized;
   if (time) updateData.time = time;
   if (date) updateData.date = date;
+  if (grade) updateData.grade = grade;
+  if (planId) updateData.planId = planId;
+  if (mistakes) updateData.mistakes = mistakes;
+
 
   try {
     const trade = await Trade.findByPk(id);
