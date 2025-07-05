@@ -100,6 +100,7 @@ exports.logout = async (req, res) => {
 
 exports.refresh = async (req, res) => {
   const token = req.cookies?.refreshToken;
+  console.log(token)
   if (!token) return res.status(401).json({ message: "No refresh token" });
 
   try {

@@ -28,7 +28,7 @@ const upload = multer({
 });
 
 // 2. Parse Excel/CSV based on platform
-const parseFile = (filePath, platform, id) => {
+const parseFile = (filePath, platform, id, accountId, date) => {
   const workbook = xlsx.readFile(filePath);
 
   // Get the first sheet (index 0)
@@ -64,8 +64,9 @@ const parseFile = (filePath, platform, id) => {
           account: rowObj["Account"] || "",
           realized: parseFloat(rowObj["Day Realized"] || "0"),
           time: rowObj["Updated"] || "",
-          date: new Date(`${today}T${rowObj["Updated"] || ""}`),
+          date: date,
           userId: id,
+          accountId: accountId
         };
       })
       .filter((trade) => trade.ticker); // Filter out empty rows
@@ -91,14 +92,14 @@ const parseFile = (filePath, platform, id) => {
 // 3. Upload controller
 const uploadController = async (req, res) => {
   const file = req.file;
-  const platform = req.body.platform;
+  const {platform, date, accountId} = req.body;
   const user = req.user.id;
 
   if (!platform) return res.status(400).json({ error: "Platform is required" });
   if (!file) return res.status(400).json({ error: "File is required" });
 
   try {
-    const trades = parseFile(file.path, platform, user);
+    const trades = parseFile(file.path, platform, user, accountId, date);
 
     await Trade.bulkCreate(trades);
 
