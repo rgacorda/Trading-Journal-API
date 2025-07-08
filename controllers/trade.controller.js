@@ -68,7 +68,7 @@ exports.createTrade = async (req, res) => {
 
 exports.updateTrade = async (req, res) => {
   const { id } = req.params;
-  const { ticker, side, quantity, entry, exit, accountId, realized, time, date, grade, planId, mistakes } =
+  const { ticker, side, quantity, entry, exit, accountId, realized, time, date, grade, planId, mistakes, fees } =
     req.body;
 
   const updateData = {};
@@ -85,6 +85,7 @@ exports.updateTrade = async (req, res) => {
   if (grade) updateData.grade = grade;
   if (planId) updateData.planId = planId;
   if (mistakes) updateData.mistakes = mistakes;
+  if (fees) updateData.fees = fees;
 
 
   try {
