@@ -57,7 +57,15 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({
-      attributes: ["firstname", "lastname", "middlename", "email", "phone", "password", "id"],
+      attributes: [
+        "firstname",
+        "lastname",
+        "middlename",
+        "email",
+        "phone",
+        "password",
+        "id",
+      ],
       where: { email },
     });
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -100,13 +108,16 @@ exports.logout = async (req, res) => {
 
 exports.refresh = async (req, res) => {
   const token = req.cookies?.refreshToken;
-  console.log(token)
   if (!token) return res.status(401).json({ message: "No refresh token" });
 
   try {
     const storedToken = await RefreshToken.findOne({ where: { token } });
     if (!storedToken) {
       return res.status(403).json({ message: "Refresh token not found" });
+    }
+    if (!storedToken || storedToken.expiresAt < new Date()) {
+      if (storedToken) await storedToken.destroy();
+      return res.status(403).json({ message: "Refresh token expired" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
