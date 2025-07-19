@@ -8,18 +8,23 @@ const {
 const jwt = require("jsonwebtoken");
 
 const createRefreshToken = async (userId) => {
-  const expiresIn = 7 * 24 * 60 * 60 * 1000;
+  await RefreshToken.destroy({
+    where: { userId }
+  })
+
   const token = jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d",
-  });
+    expiresIn: "7d"
+  })
+
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
   await RefreshToken.create({
     token,
-    userId,
-    expiresAt: new Date(Date.now() + expiresIn),
-  });
+    expiresAt,
+    userId
+  })
 
-  return token;
+  return token
 };
 
 exports.register = async (req, res) => {
