@@ -13,27 +13,12 @@ require("./cron/cleanupTokens");
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://16.176.210.136:3000',
-  'http://yourdomain.com',
-  'https://yourdomain.com',
-];
-
 //MIDDLEWARE
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
-    exposedHeaders: ['set-cookie'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    exposedHeaders: ['set-cookie']
   })
 );
 app.use(express.json());
