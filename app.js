@@ -14,13 +14,18 @@ dotenv.config();
 const app = express();
 
 //MIDDLEWARE
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true,
-    exposedHeaders: ['set-cookie']
-  })
-);
+if (process.env.NODE_ENV !== 'development') {
+  console.log("CORS is enabled");
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN,
+      credentials: true,
+      exposedHeaders: ['set-cookie']
+    })
+  );
+} else {
+  console.log("CORS is disabled for development");
+}
 app.use(express.json());
 app.use(cookieParser());
 
