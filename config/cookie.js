@@ -1,8 +1,9 @@
 const commonOptions = {
-  httpOnly: true,
+  httpOnly: false,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  domain: undefined, // optional if needed for subdomains
+  sameSite: "lax", // lax is fine for same-origin but different ports
+  secure: false,  
+  // domain: undefined, // optional if needed for subdomains
 };
 
 const accessTokenCookieConfig = {
