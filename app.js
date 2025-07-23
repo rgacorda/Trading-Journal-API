@@ -14,11 +14,15 @@ dotenv.config();
 const app = express();
 
 //MIDDLEWARE
+const allowedOrigins = [
+  'http://localhost:3000',             // for dev
+  'https://trade2learn.site',          // your deployed frontend
+];
 if (process.env.NODE_ENV !== 'development') {
   console.log("CORS is enabled");
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN,
+      origin: allowedOrigins,
       credentials: true,
       exposedHeaders: ['set-cookie']
     })
