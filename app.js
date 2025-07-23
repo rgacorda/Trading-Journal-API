@@ -15,8 +15,9 @@ const app = express();
 
 //MIDDLEWARE
 const allowedOrigins = [
-  'http://localhost:3000',             // for dev
-  'https://trade2learn.site',          // your deployed frontend
+  'http://localhost:3000',   
+  'https://trade2learn.site',
+  'http://trade2learn.site',
 ];
 if (process.env.NODE_ENV !== 'development') {
   console.log("CORS is enabled");
