@@ -2,9 +2,10 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
+const { toZonedTime, format } = require("date-fns-tz");
 const { Trade } = require("../models");
 
-// 1. Multer storage engine with file filtering
+// 1. Multer storage engine
 const storage = multer.diskStorage({
   destination: "./uploads/trades",
   filename: (req, file, cb) => {
@@ -17,7 +18,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const isCsv =
       file.mimetype === "text/csv" || file.originalname.endsWith(".csv");
-    const isExcel = file.originalname.endsWith(".xls"); // Changed to .xls only
+    const isExcel = file.originalname.endsWith(".xls");
 
     if (isCsv || isExcel) {
       cb(null, true);
@@ -27,29 +28,26 @@ const upload = multer({
   },
 });
 
-// 2. Parse Excel/CSV based on platform
-const parseFile = (filePath, platform, id, accountId, date) => {
+// 2. Parse Excel/CSV
+const parseFile = (filePath, platform, id, accountId, inputDate) => {
   const workbook = xlsx.readFile(filePath);
-
-  // Get the first sheet (index 0)
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-
-  // Convert to JSON with header row
   const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 });
 
-  // Find header row (first non-empty row)
   const headerRow = rows.find((row) => row.length > 0);
-
-  // Get data rows (skip header)
   const dataRows = rows.slice(rows.findIndex((row) => row.length > 0) + 1);
 
-  const today = new Date().toISOString().split("T")[0];
+  // Parse inputDate (ISO string) to PH timezone
+  const date = inputDate ? new Date(inputDate) : new Date();
+  const phZonedDate = toZonedTime(date, "Asia/Manila");
+  const formattedPHDate = format(phZonedDate, "yyyy-MM-dd", {
+    timeZone: "Asia/Manila",
+  });
 
   if (platform === "tz_pro") {
     return dataRows
       .map((row) => {
-        // Create an object by mapping header names to row values
         const rowObj = {};
         headerRow.forEach((header, index) => {
           rowObj[header] = row[index];
@@ -64,12 +62,12 @@ const parseFile = (filePath, platform, id, accountId, date) => {
           account: rowObj["Account"] || "",
           realized: parseFloat(rowObj["Day Realized"] || "0"),
           time: rowObj["Updated"] || "",
-          date: date,
+          date: formattedPHDate,
           userId: id,
-          accountId: accountId
+          accountId: accountId,
         };
       })
-      .filter((trade) => trade.ticker); // Filter out empty rows
+      .filter((trade) => trade.ticker);
   }
 
   if (platform === "tz_main") {
@@ -82,7 +80,9 @@ const parseFile = (filePath, platform, id, accountId, date) => {
       account: row["Account Name"],
       realized: parseFloat(row["Net PnL"]),
       time: row["Trade Time"],
-      date: today,
+      date: formattedPHDate,
+      userId: id,
+      accountId: accountId,
     }));
   }
 
@@ -92,7 +92,7 @@ const parseFile = (filePath, platform, id, accountId, date) => {
 // 3. Upload controller
 const uploadController = async (req, res) => {
   const file = req.file;
-  const {platform, date, accountId} = req.body;
+  const { platform, date, accountId } = req.body;
   const user = req.user.id;
 
   if (!platform) return res.status(400).json({ error: "Platform is required" });
@@ -103,14 +103,13 @@ const uploadController = async (req, res) => {
 
     await Trade.bulkCreate(trades);
 
-    res
-      .status(200)
-      .json({ message: `${trades.length} trades uploaded successfully` });
+    res.status(200).json({
+      message: `${trades.length} trades uploaded successfully`,
+    });
   } catch (err) {
     console.error("Error parsing or saving trades:", err.message);
     res.status(500).json({ error: "Failed to process file" });
   } finally {
-    // Delete file regardless of success or failure
     try {
       fs.unlinkSync(file.path);
     } catch (fsErr) {
