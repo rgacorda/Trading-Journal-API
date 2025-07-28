@@ -4,7 +4,7 @@ const commonOptions = {
   httpOnly: true,
   secure: isProduction,
   sameSite: isProduction ? "None" : "Lax",
-  // domain: isProduction ? ".trade2learn.site" : undefined,
+  domain: isProduction ? ".trade2learn.site" : undefined,
   path: '/',
 };
 
