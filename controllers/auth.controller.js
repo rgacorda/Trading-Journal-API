@@ -157,15 +157,16 @@ exports.refresh = async (req, res) => {
 };
 
 exports.checkAuth = async (req, res) => {
-  const accessToken = req.cookies?.refreshToken;
-  if (!accessToken) {
-    return res.status(401).json({ message: "Unauthorized" });
+  const token = req.cookies?.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token' });
   }
 
   try {
-    const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    res.status(200).json({ message: "Token valid", userId: payload.id });
+    const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    res.status(200).json({ message: 'Token valid', userId: payload.id });
   } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
