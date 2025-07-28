@@ -5,37 +5,37 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const db = require("./models");
 
-
-//AUTO DB
+// AUTO DB CLEANUP
 require("./cron/cleanupTokens");
 
-//INIT
+// INIT
 dotenv.config();
 const app = express();
 
-//MIDDLEWARE
+// MIDDLEWARE
 const allowedOrigins = [
-  'http://localhost:3000',   
-  'https://trade2learn.site',
-  'http://trade2learn.site',
+  "http://localhost:3000",
+  "https://trade2learn.site",
+  "http://trade2learn.site",
 ];
-if (process.env.NODE_ENV !== 'development') {
+
+if (process.env.NODE_ENV !== "development") {
   console.log("CORS is enabled");
   app.use(
     cors({
       origin: allowedOrigins,
       credentials: true,
-      exposedHeaders: ['set-cookie']
+      exposedHeaders: ["set-cookie"],
     })
   );
 } else {
   console.log("CORS is disabled for development");
 }
+
 app.use(express.json());
 app.use(cookieParser());
 
-
-//ROUTES
+// ROUTES
 const authRoutes = require("./routes/auth.routes");
 app.use("/auth", authRoutes);
 const tradeRoutes = require("./routes/trade.routes");
@@ -47,10 +47,11 @@ app.use("/plan", planRoutes);
 const accountRoutes = require("./routes/account.routes");
 app.use("/account", accountRoutes);
 
-//DB and PORT server
+// DB SYNC & SERVER START
 const PORT = process.env.PORT;
 db.sequelize
-  .sync({alter: true})
+  // .sync({ alter: true })
+  .sync({ alter: process.env.NODE_ENV === "development" })
   .then(() => {
     console.log("Database synced");
     app.listen(PORT, () => {

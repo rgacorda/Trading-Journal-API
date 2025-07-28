@@ -1,14 +1,14 @@
 const commonOptions = {
-  httpOnly: false,
+  httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: "lax", // lax is fine for same-origin but different ports
-  secure: false,  
+  sameSite: "None", // lax is fine for same-origin but different ports
   // domain: undefined, // optional if needed for subdomains
+  path: '/',
 };
 
 const accessTokenCookieConfig = {
   ...commonOptions,
-  maxAge: 15 * 60 * 1000, // 15 minutes
+  maxAge: 5 * 60 * 1000, // 15 minutes
 };
 
 const refreshTokenCookieConfig = {
