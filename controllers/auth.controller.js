@@ -11,7 +11,9 @@ const createRefreshToken = async (userId) => {
   await RefreshToken.destroy({ where: { userId } });
 
   const generateToken = () =>
-    jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
 
   const token = generateToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -20,7 +22,7 @@ const createRefreshToken = async (userId) => {
     await RefreshToken.create({
       token,
       expiresAt,
-      userId
+      userId,
     });
   } catch (err) {
     if (err.name === "SequelizeUniqueConstraintError") {
@@ -151,5 +153,19 @@ exports.refresh = async (req, res) => {
     return res
       .status(401)
       .json({ message: "Invalid or expired refresh token" });
+  }
+};
+
+exports.checkAuth = async (req, res) => {
+  const accessToken = req.cookies?.refreshToken;
+  if (!accessToken) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    res.status(200).json({ message: "Token valid", userId: payload.id });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
   }
 };

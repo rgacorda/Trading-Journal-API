@@ -19,18 +19,13 @@ const allowedOrigins = [
   "http://trade2learn.site",
 ];
 
-if (true) {
-  console.log("CORS is enabled");
-  app.use(
-    cors({
-      origin: allowedOrigins,
-      credentials: true,
-      exposedHeaders: ["set-cookie"],
-    })
-  );
-} else {
-  console.log("CORS is disabled for development");
-}
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    exposedHeaders: ["set-cookie"],
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
