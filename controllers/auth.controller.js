@@ -113,6 +113,8 @@ exports.logout = async (req, res) => {
   }
   // res.clearCookie("token", accessTokenCookieConfig);
   res.clearCookie("refreshToken", refreshTokenCookieConfig);
+  res.clearCookie("token", accessTokenCookieConfig);
+  
   return res.status(200).json({ message: "Logged out successfully" });
 };
 
@@ -144,6 +146,7 @@ exports.refresh = async (req, res) => {
 
     res.cookie("token", newAccessToken, accessTokenCookieConfig);
     res.cookie("refreshToken", newRefreshToken, refreshTokenCookieConfig);
+    
 
     return res.status(200).json({ message: "Token refreshed" });
   } catch (err) {

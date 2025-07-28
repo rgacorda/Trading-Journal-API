@@ -2,7 +2,7 @@ const commonOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: "None", // lax is fine for same-origin but different ports
-  // domain: undefined, // optional if needed for subdomains
+  domain: ".trade2learn.site", 
   path: '/',
 };
 
