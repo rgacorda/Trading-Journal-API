@@ -19,7 +19,7 @@ const allowedOrigins = [
   "http://trade2learn.site",
 ];
 
-if (process.env.NODE_ENV !== "development") {
+if (true) {
   console.log("CORS is enabled");
   app.use(
     cors({

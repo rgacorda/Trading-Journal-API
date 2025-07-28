@@ -1,14 +1,16 @@
+const isProduction = process.env.NODE_ENV === 'production';
+
 const commonOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: "None", // lax is fine for same-origin but different ports
-  domain: ".trade2learn.site", 
+  secure: isProduction,
+  sameSite: isProduction ? "None" : "Lax",
+  // domain: isProduction ? ".trade2learn.site" : undefined,
   path: '/',
 };
 
 const accessTokenCookieConfig = {
   ...commonOptions,
-  maxAge: 5 * 60 * 1000, // 15 minutes
+  maxAge: 15 * 60 * 1000, // 15 minutes
 };
 
 const refreshTokenCookieConfig = {
