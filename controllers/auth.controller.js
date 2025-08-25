@@ -77,6 +77,7 @@ exports.login = async (req, res) => {
         "phone",
         "password",
         "id",
+        "role",
       ],
       where: { email },
     });
@@ -98,6 +99,7 @@ exports.login = async (req, res) => {
         middlename: user.middlename,
         email: user.email,
         phone: user.phone,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -168,5 +170,23 @@ exports.checkAuth = async (req, res) => {
     res.status(200).json({ message: 'Token valid', userId: payload.id });
   } catch (err) {
     res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// controllers/authController.js
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // TODO: Generate token and send email
+    return res.status(200).json({ message: "Password reset link sent" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({ message: "Error processing request" });
   }
 };
