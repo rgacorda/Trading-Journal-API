@@ -1,10 +1,10 @@
 
 const permissions = {
-  free: [
-    'read:public',
-    'create:trade', 'read:trade', 'update:trade', 'delete:trade',
-    'read:plan',
-  ],
+  // free: [
+  //   'read:public',
+  //   'create:trade', 'read:trade', 'update:trade', 'delete:trade',
+  //   'read:plan',
+  // ],
   paid: [
     'read:public',
     'read:paid',

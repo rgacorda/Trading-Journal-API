@@ -7,6 +7,16 @@ exports.getAllTrades = async (req, res) => {
       where: {
         userId,
       },
+      include: [
+        {
+          model: require("../models").Account,
+          as: "Account",
+          where: {
+            isAnalyticsIncluded: true,
+          },
+          attributes: [], 
+        },
+      ],
     });
     const sortedTrades = trades.sort((a, b) => new Date(b.date) - new Date(a.date));
     res.status(200).json(sortedTrades);

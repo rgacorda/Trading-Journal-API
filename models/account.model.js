@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         model: "Users",
         key: "id",
       }
-    }
+    },
+    isAnalyticsIncluded: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   });
 };
