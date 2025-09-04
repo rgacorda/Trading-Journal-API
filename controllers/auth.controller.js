@@ -6,27 +6,26 @@ const {
   refreshTokenCookieConfig,
 } = require("../config/cookie");
 const jwt = require("jsonwebtoken");
+const sendMail = require("../utils/sendMail");
+const crypto = require("crypto");
 
-const createRefreshToken = async (userId) => {
-  await RefreshToken.destroy({ where: { userId } });
 
-  const generateToken = () =>
-    jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: "7d",
-    });
+const createRefreshToken = async (user) => {
+  await RefreshToken.destroy({ where: { userId: user.id } });
 
-  const token = generateToken();
+  
+  const token = generateRefreshToken(user);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   try {
     await RefreshToken.create({
       token,
       expiresAt,
-      userId,
+      userId: user.id,
     });
   } catch (err) {
     if (err.name === "SequelizeUniqueConstraintError") {
-      return await createRefreshToken(userId);
+      return await createRefreshToken(user);
     }
     throw err;
   }
@@ -86,7 +85,7 @@ exports.login = async (req, res) => {
     }
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await createRefreshToken(user.id);
+    const refreshToken = await createRefreshToken(user);
 
     res.cookie("token", accessToken, accessTokenCookieConfig);
     res.cookie("refreshToken", refreshToken, refreshTokenCookieConfig);
@@ -143,7 +142,7 @@ exports.refresh = async (req, res) => {
 
     // Token rotation (optional but good): delete old and issue new refresh token
     await storedToken.destroy();
-    const newRefreshToken = await createRefreshToken(user.id);
+    const newRefreshToken = await createRefreshToken(user);
     const newAccessToken = generateAccessToken(user);
 
     res.cookie("token", newAccessToken, accessTokenCookieConfig);
@@ -162,31 +161,72 @@ exports.checkAuth = async (req, res) => {
   const token = req.cookies?.refreshToken;
 
   if (!token) {
-    return res.status(401).json({ message: 'No token' });
+    return res.status(401).json({ message: "No token" });
   }
 
   try {
     const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    res.status(200).json({ message: 'Token valid', userId: payload.id });
+    res.status(200).json({ message: "Token valid", userId: payload.id });
   } catch (err) {
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ message: "Invalid token" });
   }
 };
 
-// controllers/authController.js
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
   try {
+    const { email } = req.body;
     const user = await User.findOne({ where: { email } });
+
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.json({
+        message: "If an account exists, a reset email has been sent.",
+      });
     }
 
-    // TODO: Generate token and send email
-    return res.status(200).json({ message: "Password reset link sent" });
+
+    const tempPassword = crypto.randomBytes(6).toString("base64").slice(0, 10);
+
+   
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+ 
+    try {
+      await sendMail({
+        to: user.email,
+        subject: "Password Reset - Trade2Learn",
+        html: `
+          <div style="background: #f6f8fa; padding: 32px; border-radius: 12px; max-width: 420px; margin: auto; font-family: 'Segoe UI', Arial, sans-serif; color: #333;">
+            <h2 style="color: #2e6c80; margin-bottom: 16px;">Password Reset</h2>
+            <p style="font-size: 16px;">Hello ${user.firstname || "User"},</p>
+            <p style="font-size: 16px; margin: 16px 0;">
+              Your temporary password is:<br>
+              <span style="display: inline-block; background: #e3f2fd; color: #1565c0; font-weight: bold; padding: 8px 16px; border-radius: 6px; font-size: 18px; letter-spacing: 1px;">
+                ${tempPassword}
+              </span>
+            </p>
+            <p style="font-size: 15px; color: #555;">
+              Please log in and change your password immediately for security.
+            </p>
+            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;">
+            <p style="font-size: 13px; color: #888;">
+              If you did not request this, please ignore this email or contact support.
+            </p>
+          </div>
+        `,
+      });
+    } catch (mailErr) {
+      console.error("Failed to send reset email:", mailErr);
+      return res.status(500).json({ message: "Failed to send reset email." });
+    }
+
+    return res.json({
+      message: "If an account exists, a reset email has been sent.",
+    });
   } catch (err) {
     console.error("Forgot password error:", err);
-    return res.status(500).json({ message: "Error processing request" });
+    return res.status(500).json({ message: "Server error" });
   }
 };

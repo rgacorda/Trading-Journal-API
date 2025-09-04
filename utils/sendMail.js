@@ -1,27 +1,38 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
-async function sendEmail(to, subject, html) {
-  const testAccount = await nodemailer.createTestAccount();
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: process.env.GMAIL_OAUTH_USER,
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+  },
+});
 
-  const transporter = nodemailer.createTransport({
-    host: testAccount.smtp.host,
-    port: testAccount.smtp.port,
-    secure: testAccount.smtp.secure,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("Error connecting to Gmail:", err);
+  } else {
+    console.log("Mailer ready ✅");
+  }
+});
+
+async function sendMail({ to, subject, text, html }) {
+  const from = `Trade2Learn Support <${process.env.GMAIL_OAUTH_USER}>`;
 
   const info = await transporter.sendMail({
-    from: '"Trade2Learn" <no-reply@trade2learn.site>',
+    from,
     to,
     subject,
+    text,
     html,
   });
 
-  console.log("Message sent: %s", info.messageId);
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  console.log("Email sent:", info.messageId);
+  return info;
 }
 
-module.exports = sendEmail;
+module.exports = sendMail;
