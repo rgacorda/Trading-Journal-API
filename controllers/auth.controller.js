@@ -44,11 +44,18 @@ const sendVerificationEmail = async (user) => {
     to: user.email,
     subject: "Verify your email - Trade2Learn",
     html: `
-      <div>
-        <h2>Email Verification</h2>
-        <p>Hello ${user.firstname || "User"},</p>
-        <p>Please verify your email by clicking the link below:</p>
-        <a href="${verifyUrl}" style="background:#1565c0;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">Verify Email</a>
+      <div style="background: #f6f8fa; padding: 32px; border-radius: 12px; max-width: 420px; margin: auto; font-family: 'Segoe UI', Arial, sans-serif; color: #333;">
+        <h2 style="color: #2e6c80; margin-bottom: 16px;">Email Verification</h2>
+        <p style="font-size: 16px;">Hello ${user.firstname || "User"},</p>
+        <p style="font-size: 16px; margin: 16px 0;">
+          Please verify your email by clicking the button below:
+        </p>
+        <a href="${verifyUrl}" style="display: inline-block; background: #1565c0; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 17px; font-weight: 500; box-shadow: 0 2px 8px rgba(21,101,192,0.08); transition: background 0.2s;">
+          Verify Email
+        </a>
+        <p style="font-size: 13px; color: #888; margin-top: 28px;">
+          If you did not request this, please ignore this email.
+        </p>
       </div>
     `,
   });
