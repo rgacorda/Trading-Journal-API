@@ -83,17 +83,19 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    const user = await User.create({
+    const userData = {
       email,
       password: hashedPassword,
       firstname,
       lastname,
       middlename,
-      phone,
       role: "free",
       isVerified: false,
       verificationToken,
-    });
+    };
+    if (phone) userData.phone = phone; // Only add phone if provided
+
+    const user = await User.create(userData);
 
     await sendVerificationEmail(user);
 
