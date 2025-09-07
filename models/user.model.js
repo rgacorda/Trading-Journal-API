@@ -7,32 +7,40 @@ module.exports = (sequelize, DataTypes) => {
     },
     firstname: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     lastname: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     middlename: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
     },
     phone: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM('free', 'paid'),
-      defaultValue: 'free'
-    }
-  })
-}
+      type: DataTypes.ENUM("free", "paid"),
+      defaultValue: "free",
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    verificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+  });
+};

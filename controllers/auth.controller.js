@@ -8,12 +8,11 @@ const {
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const crypto = require("crypto");
-
+require("dotenv").config();
 
 const createRefreshToken = async (user) => {
   await RefreshToken.destroy({ where: { userId: user.id } });
 
-  
   const token = generateRefreshToken(user);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -33,11 +32,49 @@ const createRefreshToken = async (user) => {
   return token;
 };
 
+// Reusable function for sending verification email
+const sendVerificationEmail = async (user) => {
+  const verificationToken =
+    user.verificationToken || crypto.randomBytes(32).toString("hex");
+  user.verificationToken = verificationToken;
+  await user.save();
+
+  const verifyUrl = `${process.env.CORS_ORIGIN}/verify-email?token=${verificationToken}`;
+  await sendMail({
+    to: user.email,
+    subject: "Verify your email - Trade2Learn",
+    html: `
+      <div>
+        <h2>Email Verification</h2>
+        <p>Hello ${user.firstname || "User"},</p>
+        <p>Please verify your email by clicking the link below:</p>
+        <a href="${verifyUrl}" style="background:#1565c0;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">Verify Email</a>
+      </div>
+    `,
+  });
+};
+
 exports.register = async (req, res) => {
   const { email, password, firstname, lastname, middlename, phone } = req.body;
 
   try {
+    const existingUser = await User.findOne({ where: { email } });
+
+    if (existingUser) {
+      if (!existingUser.isVerified) {
+        await sendVerificationEmail(existingUser);
+        return res.status(409).json({
+          message:
+            "Email already registered but not verified. Verification email resent.",
+        });
+      } else {
+        return res.status(409).json({ message: "Email already exists." });
+      }
+    }
+
+    // Proceed with registration
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const user = await User.create({
       email,
@@ -47,16 +84,17 @@ exports.register = async (req, res) => {
       middlename,
       phone,
       role: "free",
+      isVerified: false,
+      verificationToken,
     });
 
-    return res.status(201).json({ message: "Registered successfully" });
+    await sendVerificationEmail(user);
+
+    return res.status(201).json({
+      message:
+        "Registered successfully. Please check your email to verify your account.",
+    });
   } catch (err) {
-    if (
-      err.name === "SequelizeUniqueConstraintError" &&
-      err.errors[0].path === "email"
-    ) {
-      return res.status(409).json({ message: "Email already exists." });
-    }
     console.error("Register error:", err);
     return res
       .status(400)
@@ -77,11 +115,22 @@ exports.login = async (req, res) => {
         "password",
         "id",
         "role",
+        "isVerified",
+        "verificationToken",
       ],
       where: { email },
     });
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      await sendVerificationEmail(user);
+      return res.status(403).json({
+        message:
+          "Account not verified. Verification email resent. Please check your email.",
+      });
     }
 
     const accessToken = generateAccessToken(user);
@@ -177,22 +226,18 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
 
-
     if (!user) {
       return res.json({
         message: "If an account exists, a reset email has been sent.",
       });
     }
 
-
     const tempPassword = crypto.randomBytes(6).toString("base64").slice(0, 10);
 
-   
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
- 
     try {
       await sendMail({
         to: user.email,
@@ -228,5 +273,25 @@ exports.forgotPassword = async (req, res) => {
   } catch (err) {
     console.error("Forgot password error:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  const token = req.body.token;
+
+  if (!token) return res.status(400).json({ message: "Invalid token" });
+
+  try {
+    const user = await User.findOne({ where: { verificationToken: token } });
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    await user.save();
+
+    return res.status(200).json({ message: "Email verified successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Verification failed" });
   }
 };
