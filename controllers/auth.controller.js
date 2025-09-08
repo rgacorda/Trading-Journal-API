@@ -39,7 +39,7 @@ const sendVerificationEmail = async (user) => {
   user.verificationToken = verificationToken;
   await user.save();
 
-  const verifyUrl = `${process.env.CORS_ORIGIN}/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${process.env.FRONTEND_URL_HTTPS}/verify-email?token=${verificationToken}`;
   await sendMail({
     to: user.email,
     subject: "Verify your email - Trade2Learn",

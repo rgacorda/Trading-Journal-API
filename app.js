@@ -14,9 +14,9 @@ const app = express();
 
 // MIDDLEWARE
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://trade2learn.site",
-  "http://trade2learn.site",
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL_HTTP,
+  process.env.FRONTEND_URL_HTTPS,
 ];
 
 app.use(
