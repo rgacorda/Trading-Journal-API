@@ -40,10 +40,6 @@ const parseFile = (filePath, platform, id, accountId, inputDate) => {
 
   // Parse inputDate (ISO string) to PH timezone
   const date = inputDate ? new Date(inputDate) : new Date();
-  const phZonedDate = toZonedTime(date, "Asia/Manila");
-  const formattedPHDate = format(phZonedDate, "yyyy-MM-dd", {
-    timeZone: "Asia/Manila",
-  });
 
   if (platform === "tz_pro") {
     return dataRows
@@ -62,7 +58,7 @@ const parseFile = (filePath, platform, id, accountId, inputDate) => {
           account: rowObj["Account"] || "",
           realized: parseFloat(rowObj["Day Realized"] || "0"),
           time: rowObj["Updated"] || "",
-          date: formattedPHDate,
+          date: date,
           userId: id,
           accountId: accountId,
         };
