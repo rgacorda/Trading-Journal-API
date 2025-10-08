@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 require("dotenv").config();
 const { User } = require("../models");
 
@@ -6,6 +7,28 @@ const isDev = process.env.NODE_ENV === "development";
 
 let transporter;
 if (!isDev) {
+  // Create OAuth2 client
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    "http://localhost:3000/oauth/callback" // Not used in production, but required
+  );
+
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+  });
+
+  // Function to get fresh access token
+  async function getAccessToken() {
+    try {
+      const { token } = await oauth2Client.getAccessToken();
+      return token;
+    } catch (error) {
+      console.error("Error getting access token:", error);
+      throw error;
+    }
+  }
+
   transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -14,6 +37,7 @@ if (!isDev) {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+      accessToken: getAccessToken, // Function that returns promise
     },
   });
 
