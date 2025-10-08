@@ -56,6 +56,8 @@ exports.updateAccount = async (req, res) => {
   if (req.body.balance) updateData.balance = req.body.balance;
   if (req.body.isAnalyticsIncluded !== undefined)
     updateData.isAnalyticsIncluded = req.body.isAnalyticsIncluded;
+  if (req.body.isCommissionsIncluded !== undefined)
+    updateData.isCommissionsIncluded = req.body.isCommissionsIncluded;
 
   try {
     const account = await Account.findByPk(id);

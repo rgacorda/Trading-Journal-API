@@ -29,5 +29,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    isCommissionsIncluded: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    }
   });
 };
