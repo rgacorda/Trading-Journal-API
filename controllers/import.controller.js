@@ -66,7 +66,7 @@ const parseFile = (filePath, platform, id, accountId, inputDate) => {
       .filter((trade) => trade.ticker);
   }
 
-  if (platform === "tz_main") {
+  if (platform === "tz_web") {
     return rows.map((row) => ({
       ticker: row["Ticker"] || row["Symbol"],
       side: row["Side"]?.toLowerCase(),
